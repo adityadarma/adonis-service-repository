@@ -1,0 +1,10 @@
+{{#var className = generators.eventName(entity.name)}}
+{{#var fileName = string(className).snakeCase().removeSuffix('repository').suffix('_repository').ext('.ts').toString()}}
+{{{
+  exports({
+    to: app.makePath('app/repositories', entity.path, fileName)
+  })
+}}}
+export default class {{ className }} {
+
+}
