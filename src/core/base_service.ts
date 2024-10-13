@@ -130,7 +130,7 @@ export default class BaseService {
     let code =
       error.status !== undefined && error.status >= 100 && error.status < 600 ? error.status : 500
 
-    if (error instanceof CustomException) {
+    if (error instanceof CustomException || error instanceof Exception) {
       message = error.message
     }
 

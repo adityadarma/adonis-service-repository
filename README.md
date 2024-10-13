@@ -1,51 +1,147 @@
-# Adonis Slack for Logger
-Adonis Slack Logger is a feature that allows developers to store application logger to slack. This feature provides a structured and organized approach to managing application logs, making it easier to query and analyze them.
+# Adonis Service Repository
+
+<br>
+
+[![gh-workflow-image]][gh-workflow-url] [![npm-image]][npm-url] [![npm-downloads]][npm-downloads] ![][typescript-image] [![license-image]][license-url]
+
+Service repository is a pattern to separate business logic and query logic. This package is designed to help simplify the maintenance of large and medium scale applications.
 
 ## Installation
 
 ```sh
-node ace add @adityadarma/adonis-logger-slack
+node ace add @adityadarma/adonis-service-repository
 ```
 
 ## Usage
 
-### Capturing Errors
+### \*Service
 
-You can capture errors by calling the `sendException` method on the instance of slack inside your exception handler.
+#### Create service
+
+```bash
+node ace make:service ServiceName
+```
+
+#### Used on controller
 
 ```ts
-export default class HttpExceptionHandler extends ExceptionHandler {
-  // ...
+protected nameService: NameService;
 
-  async report(error: unknown, ctx: HttpContext) {
-    if (this.shouldReport(error as any)) {
-      ctx.slack.sendException(error)
+construct($nameService: NameService)
+{
+    this.nameService = nameService;
+}
+
+async data()
+{
+    return this.nameService.functionName().getData();
+}
+
+async json()
+{
+  return this.nameService.functionName().toJson();
+}
+
+async withResource()
+{
+    return this.nameService.functionName().toJsonFromResource(ClassResource);
+}
+```
+
+#### Use Service & Exception
+
+Every all exception, must have handle to class CustomException
+
+```ts
+async nameMethod()
+{
+    try {
+      .........
+      if (false) {
+        throw new CustomException('Error exception');
+      }
+      ..........
+      return this.setData(data)
+        .setMessage('Message data')
+        .setCode(200);
+      // OR
+      return this.setData(data)
+        .setResource(ClassResource)
+        .setMessage('Message data')
+        .setCode(200);
+    } catch (error) {
+      return this.exceptionResponse(error);
     }
+}
+```
 
-    return super.report(error, ctx)
+### \*Repository
+
+#### Create repository
+
+```bash
+node ace make:repository nameRepository
+```
+
+#### Used on service
+
+```ts
+construct(nameRepository: NameRepository)
+{
+  this.nameRepository = nameRepository;
+}
+
+async data()
+{
+    this.nameRepository.functionName();
+}
+```
+
+### *Resource
+
+#### Create Resource
+
+```bash
+node ace make:resource nameResource
+```
+
+#### Used on service
+
+```ts
+construct(nameResource: NameResource)
+{
+  this.nameResource = nameResource;
+}
+
+async data()
+{
+  try {
+    .........
+    if (false) {
+      throw new CustomException('Error exception');
+    }
+    ..........
+
+    return this.setData(data)
+      .setResource(ClassResource)
+      .setMessage('Message data')
+      .setCode(200);
+  } catch (error) {
+    return this.exceptionResponse(error);
   }
 }
 ```
 
-### Adding Integrations
+## License
 
-Logger provides multiple integrations to enhance the data captured by driver. You can add integrations by changing the `config` inside the configuration `config/logger.ts`.
+Adonis Datatables is open-sourced software licensed under the [MIT license](LICENSE.md).
 
-
-```ts
-// config/logger.ts
-
-slack: {
-  enabled: true,
-  name: env.get('APP_NAME'),
-  level: env.get('LOG_LEVEL'),
-  icon: 'boom', 
-  url: env.get('LOG_SLACK_WEBHOOK_URL'),
-  transport: {
-    targets: targets()
-      .pushIf(!app.inProduction, targets.pretty())
-      .pushIf(app.inProduction, targets.file({ destination: 1 }))
-      .toArray(),
-  },
-},
-```
+[gh-workflow-image]: https://img.shields.io/github/actions/workflow/status/adityadarma/adonis-service-repository/release.yml?style=for-the-badge
+[gh-workflow-url]: https://github.com/adityadarma/adonis-service-repository/actions/workflows/release.yml 'Github action'
+[npm-image]: https://img.shields.io/npm/v/@adityadarma/adonis-service-repository/latest.svg?style=for-the-badge&logo=npm
+[npm-url]: https://www.npmjs.com/package/@adityadarma/adonis-service-repository/v/latest 'npm'
+[typescript-image]: https://img.shields.io/badge/Typescript-294E80.svg?style=for-the-badge&logo=typescript
+[license-url]: LICENSE.md
+[license-image]: https://img.shields.io/github/license/adityadarma/adonis-service-repository?style=for-the-badge
+[npm-downloads]: https://img.shields.io/npm/dm/@adityadarma/adonis-service-repository.svg?style=for-the-badge
+[count-downloads]: https://npmcharts.com/compare/@adityadarma/adonis-service-repository?minimal=true
