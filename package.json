@@ -92,5 +92,9 @@
   "eslintConfig": {
     "extends": "@adonisjs/eslint-config/package"
   },
-  "prettier": "@adonisjs/prettier-config"
+  "prettier": "@adonisjs/prettier-config",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/adityadarma/adonis-service-repository"
+  }
 }
