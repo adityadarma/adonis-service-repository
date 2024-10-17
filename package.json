@@ -1,7 +1,7 @@
 {
   "name": "@adityadarma/adonis-service-repository",
   "description": "",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "engines": {
     "node": ">=20.6.0"
   },
@@ -50,7 +50,7 @@
   "homepage": "https://github.com/adityadarma/adonis-service-repository#readme",
   "repository": {
     "type": "git",
-    "url": "https://github.com/adityadarma/adonis-service-repository"
+    "url": "git+https://github.com/adityadarma/adonis-service-repository.git"
   },
   "devDependencies": {
     "@adonisjs/assembler": "^7.7.0",
