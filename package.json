@@ -1,7 +1,7 @@
 {
   "name": "@adityadarma/adonis-service-repository",
   "description": "",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "engines": {
     "node": ">=20.6.0"
   },
