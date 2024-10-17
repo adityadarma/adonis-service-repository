@@ -34,7 +34,7 @@
     "prebuild": "npm run lint && npm run clean",
     "build": "tsc",
     "postbuild": "npm run copy:templates && npm run index:commands",
-    "release": "np",
+    "release": "release-it",
     "version": "npm run build",
     "prepublishOnly": "npm run build",
     "index:commands": "adonis-kit index build/commands"
@@ -47,6 +47,11 @@
   ],
   "author": "Aditya Darma <adhit.boys1@gmail.com>",
   "license": "MIT",
+  "homepage": "https://github.com/adityadarma/adonis-service-repository#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/adityadarma/adonis-service-repository"
+  },
   "devDependencies": {
     "@adonisjs/assembler": "^7.7.0",
     "@adonisjs/core": "^6.12.0",
@@ -74,13 +79,32 @@
   },
   "publishConfig": {
     "access": "public",
-    "tag": "latest"
-  },
-  "np": {
-    "message": "chore(release): %s",
     "tag": "latest",
-    "branch": "main",
-    "anyBranch": false
+    "provenance": true
+  },
+  "release-it": {
+    "git": {
+      "requireCleanWorkingDir": true,
+      "requireUpstream": true,
+      "commitMessage": "chore(release): ${version}",
+      "tagAnnotation": "v${version}",
+      "push": true,
+      "tagName": "v${version}"
+    },
+    "github": {
+      "release": true
+    },
+    "npm": {
+      "publish": true,
+      "skipChecks": true
+    },
+    "plugins": {
+      "@release-it/conventional-changelog": {
+        "preset": {
+          "name": "angular"
+        }
+      }
+    }
   },
   "c8": {
     "reporter": [
@@ -94,9 +118,5 @@
   "eslintConfig": {
     "extends": "@adonisjs/eslint-config/package"
   },
-  "prettier": "@adonisjs/prettier-config",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/adityadarma/adonis-service-repository"
-  }
+  "prettier": "@adonisjs/prettier-config"
 }
