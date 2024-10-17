@@ -97,7 +97,7 @@ async data()
 }
 ```
 
-### *Resource
+### \*Resource
 
 #### Create Resource
 
