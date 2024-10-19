@@ -22,12 +22,20 @@ node ace add @adityadarma/adonis-service-repository
 node ace make:service ServiceName
 ```
 
+#### Using Core or Base
+
+If you want to change the core service according to your wishes without changing the existing methods, you can publish it first.
+
+```bash
+node ace service:publish
+```
+
 #### Used on controller
 
 ```ts
 protected nameService: NameService;
 
-construct($nameService: NameService)
+construct(nameService: NameService)
 {
     this.nameService = nameService;
 }
@@ -105,6 +113,8 @@ async data()
 node ace make:resource nameResource
 ```
 
+*Note: use flag `--async` to create resource asyncronous 
+
 #### Used on service
 
 ```ts
@@ -134,7 +144,7 @@ async data()
 
 ## License
 
-Adonis Datatables is open-sourced software licensed under the [MIT license](LICENSE.md).
+This package is open-sourced software licensed under the [MIT license](LICENSE.md).
 
 [gh-workflow-image]: https://img.shields.io/github/actions/workflow/status/adityadarma/adonis-service-repository/release.yml?style=for-the-badge
 [gh-workflow-url]: https://github.com/adityadarma/adonis-service-repository/actions/workflows/release.yml 'Github action'
