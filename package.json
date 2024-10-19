@@ -17,8 +17,9 @@
   ],
   "exports": {
     ".": "./build/index.js",
-    "./base_service": "./build/src/core/base_service.js",
-    "./base_resource": "./build/src/core/base_service.js",
+    "./base_service": "./build/src/base_service.js",
+    "./base_resource": "./build/src/base_service.js",
+    "./core/*": "./build/src/core/*.js",
     "./exceptions/*": "./build/src/exceptions/*.js",
     "./commands": "./build/commands/main.js"
   },
@@ -32,7 +33,7 @@
     "pretest": "npm run lint",
     "test": "c8 npm run quick:test",
     "prebuild": "npm run lint && npm run clean",
-    "build": "tsc",
+    "build": "npm run clean && tsc",
     "postbuild": "npm run copy:templates && npm run index:commands",
     "release": "release-it",
     "version": "npm run build",

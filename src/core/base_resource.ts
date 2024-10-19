@@ -1,4 +1,4 @@
-export default class BaseResource {
+export class BaseResource {
   constructor(public resource: any) {}
 
   static collection(resources: any): any {
