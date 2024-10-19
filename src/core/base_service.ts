@@ -3,7 +3,7 @@ import { SimplePaginator } from '@adonisjs/lucid/database'
 import CustomException from '../exceptions/custom_exception.js'
 import app from '@adonisjs/core/services/app'
 
-export default class BaseService {
+export class BaseService {
   private code: number = 200
   private message: string = ''
   private data: any = null
@@ -130,11 +130,11 @@ export default class BaseService {
     let code =
       error.status !== undefined && error.status >= 100 && error.status < 600 ? error.status : 500
 
-    if (error instanceof CustomException || error instanceof Exception) {
+    if (error instanceof CustomException) {
       message = error.message
     }
 
-    if (app.nodeEnvironment !== 'production') {
+    if (!app.inProduction) {
       message = error.message
       this.error = error.stack
     }

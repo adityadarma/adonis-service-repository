@@ -1,0 +1,13 @@
+{{#var className = generators.eventName(entity.name)}}
+{{#var fileName = string(className).snakeCase().removeSuffix('service').suffix('_service').ext('.ts').toString()}}
+{{{
+  exports({
+    to: app.makePath('app/services', entity.path, fileName)
+  })
+}}}
+
+import { BaseService as CoreService} from "@adityadarma/adonis-service-repository/core/base_service"
+
+export default class BaseService extends CoreService {
+
+}
