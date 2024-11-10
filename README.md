@@ -1,6 +1,6 @@
 # Adonis Service Repository
 
-<br/>
+<br />
 
 [![gh-workflow-image]][gh-workflow-url] [![npm-image]][npm-url] [![npm-downloads]][npm-downloads] ![][typescript-image] [![license-image]][license-url]
 
@@ -58,7 +58,7 @@ async withResource()
 
 #### Use Service & Exception
 
-Every all exception, must have handle to class CustomException
+Every all exception, must have handle to class ServiceException
 
 ```ts
 async nameMethod()
@@ -66,7 +66,7 @@ async nameMethod()
     try {
       .........
       if (false) {
-        throw new CustomException('Error exception');
+        throw new ServiceException('Error exception');
       }
       ..........
       return this.setData(data)
@@ -77,6 +77,11 @@ async nameMethod()
         .setResource(ClassResource)
         .setMessage('Message data')
         .setCode(200);
+      // OR
+      return await this.setData(data)
+        .setMessage('Message data')
+        .setCode(200)
+        .setResourceAsync(ClassResource);
     } catch (error) {
       return this.exceptionResponse(error);
     }
@@ -113,7 +118,7 @@ async data()
 node ace make:resource nameResource
 ```
 
-*Note: use flag `--async` to create resource asyncronous 
+\*Note: use flag `--async` to create resource asyncronous
 
 #### Used on service
 
@@ -128,7 +133,7 @@ async data()
   try {
     .........
     if (false) {
-      throw new CustomException('Error exception');
+      throw new ServiceException('Error exception');
     }
     ..........
 
@@ -136,6 +141,11 @@ async data()
       .setResource(ClassResource)
       .setMessage('Message data')
       .setCode(200);
+    // OR
+    return await this.setData(data)
+      .setMessage('Message data')
+      .setCode(200)
+      .setResourceAsync(ClassResource);
   } catch (error) {
     return this.exceptionResponse(error);
   }
