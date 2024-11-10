@@ -1,6 +1,6 @@
 import { Exception } from '@adonisjs/core/exceptions'
 import { SimplePaginator } from '@adonisjs/lucid/database'
-import CustomException from '../exceptions/custom_exception.js'
+import ServiceException from '../exceptions/service_exception.js'
 import app from '@adonisjs/core/services/app'
 
 export class BaseService {
@@ -130,7 +130,7 @@ export class BaseService {
     let code =
       error.status !== undefined && error.status >= 100 && error.status < 600 ? error.status : 500
 
-    if (error instanceof CustomException) {
+    if (error instanceof ServiceException) {
       message = error.message
     }
 
