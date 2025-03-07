@@ -6,7 +6,7 @@ import app from '@adonisjs/core/services/app'
 export class BaseService {
   private code: number = 200
   private message: string = ''
-  private data: any = null
+  private data: any = undefined
   private error: any = undefined
   private meta: any = undefined
 
