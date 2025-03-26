@@ -1,13 +1,15 @@
-export class BaseResource {
-  constructor(public resource: any) {}
+import { LucidRow } from "@adonisjs/lucid/types/model"
 
-  static collection(resources: any): any {
+export class BaseResource<T extends LucidRow['$attributes']> {
+  constructor(public resource: T) {}
+
+  static collection<T extends LucidRow['$attributes']>(resources: T[]): any {
     if (resources !== undefined) {
       return resources
-        .map((resource: any) => {
+        .map((resource: T) => {
           return new this(resource).toObject()
         })
-        .map((data: any) => {
+        .map((data: T) => {
           return removeMissingValues(data)
         })
     }
@@ -15,16 +17,16 @@ export class BaseResource {
     return null
   }
 
-  static async collectionAsync(resources: any): Promise<any> {
+  static async collectionAsync<T extends LucidRow['$attributes']>(resources: T[]): Promise<any> {
     if (resources !== undefined) {
       let data = await Promise.all(
-        resources.map(async (resource: any) => {
+        resources.map(async (resource: T) => {
           return await new this(resource).toObject()
         })
       )
 
       data = await Promise.all(
-        data.map(async (value: any) => {
+        data.map(async (value: T) => {
           return await removeMissingValuesAsync(value)
         })
       )
@@ -35,7 +37,7 @@ export class BaseResource {
     return null
   }
 
-  static item(resource: any): any {
+  static item<T extends LucidRow['$attributes']>(resource: T): any {
     if (resource !== undefined) {
       return removeMissingValues(new this(resource).toObject())
     }
@@ -43,7 +45,7 @@ export class BaseResource {
     return null
   }
 
-  static async itemAsync(resource: any): Promise<any> {
+  static async itemAsync<T extends LucidRow['$attributes']>(resource: T): Promise<any> {
     if (resource !== undefined) {
       return await removeMissingValues(await new this(resource).toObject())
     }
