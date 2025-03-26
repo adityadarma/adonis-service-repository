@@ -1,4 +1,4 @@
-import { LucidRow } from "@adonisjs/lucid/types/model"
+import { LucidRow } from '@adonisjs/lucid/types/model'
 
 export class BaseResource<T extends LucidRow['$attributes']> {
   constructor(public resource: T) {}
