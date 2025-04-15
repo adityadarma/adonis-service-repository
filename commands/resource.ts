@@ -1,5 +1,6 @@
 import { BaseCommand, args, flags } from '@adonisjs/core/ace'
 import { stubsRoot } from '../stubs/main.js'
+import generators from '../contracts/generators.js'
 
 export default class MakeResource extends BaseCommand {
   static commandName = 'make:resource'
@@ -32,6 +33,7 @@ export default class MakeResource extends BaseCommand {
       await codemods.makeUsingStub(stubsRoot, 'make/resource/main.stub', {
         flags: this.parsed.flags,
         entity: this.app.generators.createEntity(this.name),
+        generators: generators,
       })
     }
   }
