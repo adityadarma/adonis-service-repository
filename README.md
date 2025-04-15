@@ -1,7 +1,5 @@
 # Adonis Service Repository
 
-<br />
-
 [![gh-workflow-image]][gh-workflow-url] [![npm-image]][npm-url] [![npm-downloads]][npm-downloads] ![][typescript-image] [![license-image]][license-url]
 
 Service repository is a pattern to separate business logic and query logic. This package is designed to help simplify the maintenance of large and medium scale applications.
@@ -33,26 +31,16 @@ node ace service:publish
 #### Used on controller
 
 ```ts
-protected nameService: NameService;
-
-construct(nameService: NameService)
-{
-    this.nameService = nameService;
-}
+construct(protected serviceName: Service) {}
 
 async data()
 {
-    return this.nameService.functionName().getData();
+  return this.serviceName.methodName().getData()
 }
 
 async json()
 {
-  return this.nameService.functionName().toJson();
-}
-
-async withResource()
-{
-    return this.nameService.functionName().toJsonFromResource(ClassResource);
+  return this.serviceName.methodName().toJson()
 }
 ```
 
@@ -61,30 +49,30 @@ async withResource()
 Every all exception, must have handle to class ServiceException
 
 ```ts
-async nameMethod()
+async methodName()
 {
-    try {
-      .........
-      if (false) {
-        throw new ServiceException('Error exception');
-      }
-      ..........
-      return this.setData(data)
-        .setMessage('Message data')
-        .setCode(200);
-      // OR
-      return this.setData(data)
-        .setResource(ClassResource)
-        .setMessage('Message data')
-        .setCode(200);
-      // OR
-      return await this.setData(data)
-        .setMessage('Message data')
-        .setCode(200)
-        .setResourceAsync(ClassResource);
-    } catch (error) {
-      return this.exceptionResponse(error);
+  try {
+    .........
+    if (false) {
+      throw new ServiceException('Error exception');
     }
+    ..........
+    return this.setMessage('Message data')
+      .setCode(200)
+      .setData(data)
+    // OR
+    return this.setMessage('Message data')
+      .setCode(200)
+      .setData(data)
+      .setResource(ClassResource)
+    // OR
+    return await this.setMessage('Message data')
+      .setCode(200)
+      .setData(data)
+      .setResourceAsync(ClassResource)
+  } catch (error) {
+    return this.exceptionResponse(error)
+  }
 }
 ```
 
@@ -99,14 +87,11 @@ node ace make:repository nameRepository
 #### Used on service
 
 ```ts
-construct(nameRepository: NameRepository)
-{
-  this.nameRepository = nameRepository;
-}
+construct(protected repositoryName: Repository) {}
 
-async data()
+async methodName()
 {
-    this.nameRepository.functionName();
+  this.repositoryName.functionName();
 }
 ```
 
@@ -123,12 +108,7 @@ node ace make:resource nameResource
 #### Used on service
 
 ```ts
-construct(nameResource: NameResource)
-{
-  this.nameResource = nameResource;
-}
-
-async data()
+async methodName()
 {
   try {
     .........
@@ -136,16 +116,15 @@ async data()
       throw new ServiceException('Error exception');
     }
     ..........
-
-    return this.setData(data)
-      .setResource(ClassResource)
-      .setMessage('Message data')
-      .setCode(200);
-    // OR
-    return await this.setData(data)
-      .setMessage('Message data')
+    return this.setMessage('Message data')
       .setCode(200)
-      .setResourceAsync(ClassResource);
+      .setData(data)
+      .setResource(ClassResource)
+    // OR
+    return await this.setMessage('Message data')
+      .setCode(200)
+      .setData(data)
+      .setResourceAsync(ClassResource)
   } catch (error) {
     return this.exceptionResponse(error);
   }

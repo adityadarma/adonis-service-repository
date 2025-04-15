@@ -14,7 +14,7 @@ const generators = {
       .removeSuffix('model')
       .singular()
       .pascalCase()
-      .suffix('repository')
+      .suffix('Repository')
       .toString()
   },
 
@@ -35,7 +35,7 @@ const generators = {
       .removeSuffix('model')
       .singular()
       .pascalCase()
-      .suffix('resource')
+      .suffix('Resource')
       .toString()
   },
 
