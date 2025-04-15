@@ -1,4 +1,4 @@
-{{#var className = generators.eventName(entity.name)}}
+{{#var className = generators.repositoryName(entity.name)}}
 {{#var fileName = string(className).snakeCase().removeSuffix('repository').suffix('_repository').ext('.ts').toString()}}
 {{{
   exports({
