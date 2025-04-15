@@ -1,63 +1,43 @@
 import { LucidRow } from '@adonisjs/lucid/types/model'
 
-export class BaseResource<T extends LucidRow['$attributes']> {
-  constructor(public resource: T) {}
+type ResourceConstructor<T, R> = {
+  new (resource: T): R
+}
 
-  static collection<T extends LucidRow['$attributes']>(resources: T[]): any {
-    if (resources !== undefined) {
-      return resources
-        .map((resource: T) => {
-          return new this(resource).toObject()
-        })
-        .map((data: T) => {
-          return removeMissingValues(data)
-        })
+export abstract class BaseResource<T extends LucidRow['$attributes']> {
+  constructor(protected resource: T) {}
+
+  abstract toObject(): any
+
+  toJSON() {
+    return this.toObject()
+  }
+
+  static async collection<T extends LucidRow['$attributes'], R extends BaseResource<T>>(
+    this: ResourceConstructor<T, R>,
+    resources: T[]
+  ): Promise<Awaited<ReturnType<R['toObject']>>[]> {
+    return await Promise.all(
+      resources.map(async (resource) => {
+        const instance = new this(resource)
+        return await instance.toObject()
+      })
+    )
+  }
+
+  static async item<T extends LucidRow['$attributes'], R extends BaseResource<T>>(
+    this: ResourceConstructor<T, R>,
+    resource: T
+  ): Promise<Record<string, any> | null> {
+    if (!resource) {
+      return null
     }
 
-    return null
+    const data = await new this(resource).toObject()
+    return await MissingValue.removeMissingValues(data)
   }
 
-  static async collectionAsync<T extends LucidRow['$attributes']>(resources: T[]): Promise<any> {
-    if (resources !== undefined) {
-      let data = await Promise.all(
-        resources.map(async (resource: T) => {
-          return await new this(resource).toObject()
-        })
-      )
-
-      data = await Promise.all(
-        data.map(async (value: T) => {
-          return await removeMissingValuesAsync(value)
-        })
-      )
-
-      return data
-    }
-
-    return null
-  }
-
-  static item<T extends LucidRow['$attributes']>(resource: T): any {
-    if (resource !== undefined) {
-      return removeMissingValues(new this(resource).toObject())
-    }
-
-    return null
-  }
-
-  static async itemAsync<T extends LucidRow['$attributes']>(resource: T): Promise<any> {
-    if (resource !== undefined) {
-      return await removeMissingValues(await new this(resource).toObject())
-    }
-
-    return null
-  }
-
-  toObject(): any {
-    throw new Error('Method toObject must be implemented')
-  }
-
-  when(condition: boolean, value: any, defaultValue: any = null) {
+  protected when(condition: boolean, value: any, defaultValue: any = null) {
     if (condition) {
       return value
     }
@@ -65,19 +45,19 @@ export class BaseResource<T extends LucidRow['$attributes']> {
     return defaultValue !== undefined ? defaultValue : new MissingValue()
   }
 
-  merge(data: any) {
+  protected merge(data: any) {
     return this.mergeWhen(true, data)
   }
 
-  mergeWhen(condition: any, data: any) {
+  protected mergeWhen(condition: any, data: any) {
     return condition && condition !== undefined ? data : new MissingValue()
   }
 
-  mergeResource(data: any, resource: any) {
+  protected mergeResource(data: any, resource: any) {
     return this.mergeResourceWhen(data, resource, null)
   }
 
-  mergeResourceWhen(data: any, resource: any, defaultValue: any = undefined) {
+  protected mergeResourceWhen(data: any, resource: any, defaultValue: any = undefined) {
     if (Array.isArray(data)) {
       return data && data !== undefined && data.length > 0
         ? resource.collection(data)
@@ -93,7 +73,7 @@ export class BaseResource<T extends LucidRow['$attributes']> {
     }
   }
 
-  whenLoaded(relationship: any, resource: any, defaultValue: any = undefined) {
+  protected whenLoaded(relationship: any, resource: any, defaultValue: any = undefined) {
     if (relationship !== undefined) {
       return this.mergeResourceWhen(relationship, resource)
     }
@@ -102,44 +82,26 @@ export class BaseResource<T extends LucidRow['$attributes']> {
   }
 }
 
-function removeMissingValues(data: any) {
-  let numericKeys = true
-
-  for (const key in data) {
-    if (Object.prototype.hasOwnProperty.call(data, key)) {
-      const value = data[key]
-
-      if (value instanceof MissingValue && value.isMissing()) {
-        delete data[key]
-      } else {
-        numericKeys = numericKeys && !Number.isNaN(Number(key))
-      }
-    }
-  }
-
-  return numericKeys ? Object.values(data) : data
-}
-
-async function removeMissingValuesAsync(data: any) {
-  let numericKeys = true
-
-  for (const key in data) {
-    if (Object.prototype.hasOwnProperty.call(data, key)) {
-      const value = data[key]
-
-      if (value instanceof MissingValue && value.isMissing()) {
-        delete data[key]
-      } else {
-        numericKeys = numericKeys && !Number.isNaN(Number(key))
-      }
-    }
-  }
-
-  return numericKeys ? Object.values(data) : data
-}
-
 class MissingValue {
   isMissing() {
     return true
+  }
+
+  static removeMissingValues(data: any) {
+    let numericKeys = true
+
+    for (const key in data) {
+      if (Object.prototype.hasOwnProperty.call(data, key)) {
+        const value = data[key]
+
+        if (value instanceof MissingValue && value.isMissing()) {
+          delete data[key]
+        } else {
+          numericKeys = numericKeys && !Number.isNaN(Number(key))
+        }
+      }
+    }
+
+    return numericKeys ? Object.values(data) : data
   }
 }

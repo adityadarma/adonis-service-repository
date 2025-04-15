@@ -35,12 +35,30 @@ construct(protected serviceName: Service) {}
 
 async data()
 {
-  return this.serviceName.methodName().getData()
+  // Get data
+  const result = await this.userService.methodName()
+  return result.getData()
+  // OR
+  return (await this.userService.methodName()).getData()
 }
 
-async json()
+async jsonResponse({ response }: HttpContext)
 {
-  return this.serviceName.methodName().toJson()
+  const result = await this.userService.methodName()
+
+  return result.getApiResponse()
+  // OR
+  return response.status(result.getCode()).json(result.getApiResponse())
+}
+
+// Set resource on controller
+async withResource({ response }: HttpContext)
+{
+  const result = await this.userService.methodName()
+
+  return await result.setResource(ResourceName)
+  // OR
+  return response.status(result.getCode()).json((await result.setResource(UserResource)).getApiResponse())
 }
 ```
 
@@ -64,12 +82,8 @@ async methodName()
     return this.setMessage('Message data')
       .setCode(200)
       .setData(data)
-      .setResource(ClassResource)
-    // OR
-    return await this.setMessage('Message data')
-      .setCode(200)
-      .setData(data)
-      .setResourceAsync(ClassResource)
+      .setResource(ClassResource) // if you want set resource in service
+      .setPaginateCase('snakeCase') // if you want change key pagination case
   } catch (error) {
     return this.exceptionResponse(error)
   }
@@ -103,8 +117,6 @@ async methodName()
 node ace make:resource nameResource
 ```
 
-\*Note: use flag `--async` to create resource asyncronous
-
 #### Used on service
 
 ```ts
@@ -120,11 +132,6 @@ async methodName()
       .setCode(200)
       .setData(data)
       .setResource(ClassResource)
-    // OR
-    return await this.setMessage('Message data')
-      .setCode(200)
-      .setData(data)
-      .setResourceAsync(ClassResource)
   } catch (error) {
     return this.exceptionResponse(error);
   }
