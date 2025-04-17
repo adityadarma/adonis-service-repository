@@ -101,15 +101,14 @@
     },
     "plugins": {
       "@release-it/conventional-changelog": {
-        "preset": "angular",
-        "config": {
-          "releaseRules": [
-            { "type": "breaking", "release": "major" },
-            { "type": "feat", "release": "minor" },
-            { "type": "core", "release": "minor" },
-            { "type": "fix", "release": "patch" },
-            { "type": "perf", "release": "patch" },
-            { "type": "refactor", "release": "patch" }
+        "infile": "CHANGELOG.md",
+        "preset": {
+          "name": "angular",
+          "types": [
+            {"type": "BREAKING CHANGE", "section": "Breaking Changes"},
+            {"type": "chore", "section": "Update Depedency"},
+            {"type": "feat", "section": "Features"},
+            {"type": "fix", "section": "Bug Fixes"}
           ]
         }
       }
