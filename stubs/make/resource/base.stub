@@ -1,0 +1,16 @@
+{{#var className = generators.resourceName(entity.name)}}
+{{#var fileName = string(className).snakeCase().removeSuffix('resource').suffix('_resource').ext('.ts').toString()}}
+{{{
+  exports({
+    to: app.makePath('app/resources', entity.path, fileName)
+  })
+}}}
+import { BaseResource } from "#resources/base_resource"
+
+export default class {{ className }} extends BaseResource<ResourceModel> {
+  async toObject(): Promise<Record<string, any>> {
+    return {
+      //
+    }
+  }
+}

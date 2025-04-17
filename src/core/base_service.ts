@@ -1,9 +1,7 @@
 import { Exception } from '@adonisjs/core/exceptions'
 import { SimplePaginator } from '@adonisjs/lucid/database'
-import { LucidRow } from '@adonisjs/lucid/types/model'
 import ServiceException from '../exceptions/service_exception.js'
 import app from '@adonisjs/core/services/app'
-import { BaseResource } from './base_resource.js'
 import string from '@adonisjs/core/helpers/string'
 
 export class BaseService {
@@ -86,20 +84,15 @@ export class BaseService {
   /**
    * Set data to resource
    */
-  async setResource<T extends LucidRow, R extends BaseResource<T>>(
-    ResourceClass: { new (resource: T): R } & {
-      collection(resources: T[]): Promise<any[]>
-      item(resource: T): Promise<any>
-    }
-  ) {
+  async setResource(resource: any) {
     if (!this.error) {
       if (this.data instanceof SimplePaginator) {
         this.meta = this.convertPaginateCase(this.data.getMeta())
-        this.data = await ResourceClass.collection(this.data.all())
+        this.data = await resource.collection(this.data.all())
       } else if (Array.isArray(this.data)) {
-        this.data = await ResourceClass.collection(this.data)
+        this.data = await resource.collection(this.data)
       } else {
-        this.data = await ResourceClass.item(this.data)
+        this.data = await resource.item(this.data)
       }
     }
 

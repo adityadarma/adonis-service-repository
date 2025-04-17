@@ -1,7 +1,7 @@
 import { BaseCommand } from '@adonisjs/core/ace'
 import { stubsRoot } from '../stubs/main.js'
 
-export default class MakeService extends BaseCommand {
+export default class ServicePublish extends BaseCommand {
   static commandName = 'service:publish'
   static description = 'Make class Base Service'
 

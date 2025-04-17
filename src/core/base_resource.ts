@@ -1,16 +1,22 @@
 import { LucidRow } from '@adonisjs/lucid/types/model'
+import { ExtractModelRelations } from '@adonisjs/lucid/types/relations'
 
 type ResourceConstructor<T, R> = {
   new (resource: T): R
 }
 
-export abstract class BaseResource<T extends LucidRow['$attributes']> {
+export abstract class BaseResource<T extends LucidRow['$attributes'] | LucidRow['$preloaded']> {
   constructor(protected resource: T) {}
 
   abstract toObject(): any
 
-  toJSON() {
-    return this.toObject()
+  async toJSON() {
+    if (!this.resource) {
+      return null
+    }
+
+    const data = await this.toObject()
+    return await MissingValue.removeMissingValues(data)
   }
 
   static async collection<T extends LucidRow['$attributes'], R extends BaseResource<T>>(
@@ -20,24 +26,12 @@ export abstract class BaseResource<T extends LucidRow['$attributes']> {
     return await Promise.all(
       resources.map(async (resource) => {
         const instance = new this(resource)
-        return await instance.toObject()
+        return await instance.toJSON()
       })
     )
   }
 
-  static async item<T extends LucidRow['$attributes'], R extends BaseResource<T>>(
-    this: ResourceConstructor<T, R>,
-    resource: T
-  ): Promise<Record<string, any> | null> {
-    if (!resource) {
-      return null
-    }
-
-    const data = await new this(resource).toObject()
-    return await MissingValue.removeMissingValues(data)
-  }
-
-  protected when(condition: boolean, value: any, defaultValue: any = null) {
+  protected when(condition: boolean, value: any, defaultValue: any = undefined) {
     if (condition) {
       return value
     }
@@ -49,15 +43,31 @@ export abstract class BaseResource<T extends LucidRow['$attributes']> {
     return this.mergeWhen(true, data)
   }
 
-  protected mergeWhen(condition: any, data: any) {
-    return condition && condition !== undefined ? data : new MissingValue()
+  protected mergeWhen(condition: any, data: any, defaultValue: any = undefined) {
+    if (condition) {
+      return data
+    }
+    return defaultValue !== undefined ? defaultValue : new MissingValue()
   }
 
-  protected mergeResource(data: any, resource: any) {
+  protected mergeResource<K extends LucidRow, L extends BaseResource<K>>(
+    data: K,
+    resource: { new (resource: K): L } & {
+      collection(resources: K[]): any[]
+      item(resource: K): any
+    }
+  ) {
     return this.mergeResourceWhen(data, resource, null)
   }
 
-  protected mergeResourceWhen(data: any, resource: any, defaultValue: any = undefined) {
+  protected mergeResourceWhen<K extends LucidRow, R extends BaseResource<K>>(
+    data: K,
+    resource: { new (resource: K): R } & {
+      collection(resources: K[]): any[]
+      item(resource: K): any
+    },
+    defaultValue: any = undefined
+  ) {
     if (Array.isArray(data)) {
       return data && data !== undefined && data.length > 0
         ? resource.collection(data)
@@ -73,9 +83,17 @@ export abstract class BaseResource<T extends LucidRow['$attributes']> {
     }
   }
 
-  protected whenLoaded(relationship: any, resource: any, defaultValue: any = undefined) {
-    if (relationship !== undefined) {
-      return this.mergeResourceWhen(relationship, resource)
+  protected whenLoaded<K extends LucidRow, L extends BaseResource<T>>(
+    relationship: ExtractModelRelations<K>,
+    resource: { new (resource: T): L } & {
+      collection(resources: T[]): any[]
+      item(resource: T): any
+    },
+    defaultValue: any = undefined
+  ) {
+    const related = this.resource.get(relationship)
+    if (related !== undefined && !(related instanceof MissingValue)) {
+      return this.mergeResourceWhen(this.resource.get(relationship), resource)
     }
 
     return defaultValue !== undefined ? defaultValue : new MissingValue()
