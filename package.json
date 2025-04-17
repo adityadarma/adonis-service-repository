@@ -40,19 +40,6 @@
     "prepublishOnly": "npm run build",
     "index:commands": "adonis-kit index build/commands"
   },
-  "keywords": [
-    "service-repository-pettern",
-    "service-pettern",
-    "repository-pettern",
-    "adonis"
-  ],
-  "author": "Aditya Darma <adhit.boys1@gmail.com>",
-  "license": "MIT",
-  "homepage": "https://github.com/adityadarma/adonis-service-repository#readme",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/adityadarma/adonis-service-repository.git"
-  },
   "devDependencies": {
     "@adonisjs/assembler": "^7.8.2",
     "@adonisjs/core": "^6.15.0",
@@ -77,6 +64,19 @@
   "peerDependencies": {
     "@adonisjs/core": "^6.15.0",
     "@adonisjs/lucid": "^21.0.0"
+  },
+  "keywords": [
+    "service-repository-pettern",
+    "service-pettern",
+    "repository-pettern",
+    "adonis"
+  ],
+  "author": "Aditya Darma <adhit.boys1@gmail.com>",
+  "license": "MIT",
+  "homepage": "https://github.com/adityadarma/adonis-service-repository#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/adityadarma/adonis-service-repository.git"
   },
   "publishConfig": {
     "access": "public",
@@ -119,5 +119,10 @@
   "eslintConfig": {
     "extends": "@adonisjs/eslint-config/package"
   },
-  "prettier": "@adonisjs/prettier-config"
+  "prettier": "@adonisjs/prettier-config",
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
+  }
 }

@@ -28,6 +28,7 @@ export default class MakeResource extends BaseCommand {
       await codemods.makeUsingStub(stubsRoot, 'make/resource/async.stub', {
         flags: this.parsed.flags,
         entity: this.app.generators.createEntity(this.name),
+        generators: generators,
       })
     } else {
       await codemods.makeUsingStub(stubsRoot, 'make/resource/main.stub', {
