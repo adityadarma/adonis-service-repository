@@ -6,7 +6,7 @@
   })
 }}}
 
-import { BaseResource as CoreResource} from "@adityadarma/adonis-service-repository/core/base_resource"
+import { BaseResource as CoreResource} from "@adityadarma/adonis-service-repository"
 import { LucidRow } from "@adonisjs/lucid/types/model"
 
 export abstract class BaseResource<T> extends CoreResource<T extends LucidRow['$attributes'] ? T : never> {}

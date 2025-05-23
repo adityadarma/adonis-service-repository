@@ -8,3 +8,5 @@
 */
 
 export { configure } from './configure.js'
+export { BaseService } from './src/core/base_service.js'
+export { BaseResource } from './src/core/base_resource.js'

@@ -17,9 +17,6 @@
   ],
   "exports": {
     ".": "./build/index.js",
-    "./base_service": "./build/src/base_service.js",
-    "./base_resource": "./build/src/base_resource.js",
-    "./core/*": "./build/src/core/*.js",
     "./exceptions/*": "./build/src/exceptions/*.js",
     "./commands": "./build/commands/main.js"
   },
