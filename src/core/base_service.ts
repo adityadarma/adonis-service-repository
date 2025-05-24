@@ -123,8 +123,13 @@ export class BaseService {
     )
   }
 
+  filterData(only: string[]) {
+    this.data.filter((item: any) => only.includes(item))
+    return this
+  }
+
   toJSON() {
-    return this.getApiResponse()
+    return this.getData()
   }
 
   /**
