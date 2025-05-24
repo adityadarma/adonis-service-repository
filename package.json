@@ -8,6 +8,7 @@
   "type": "module",
   "files": [
     "build/commands",
+    "build/contracts",
     "build/src",
     "build/stubs",
     "build/index.d.ts",
