@@ -13,7 +13,7 @@ export abstract class BaseResource<T extends LucidRow['$attributes']> {
 
   static async item<K extends LucidRow['$attributes'], R extends BaseResource<K>>(
     this: ResourceConstructor<K, R>,
-    resource: K
+    resource: K | null
   ): Promise<Awaited<ReturnType<R['toObject']>> | null> {
     if (!resource) {
       return null
