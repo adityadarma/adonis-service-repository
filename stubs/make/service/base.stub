@@ -5,7 +5,7 @@
     to: app.makePath('app/services', entity.path, fileName)
   })
 }}}
-import BaseService from "#services/base_service"
+import { BaseService } from "#services/base_service"
 
 export default class {{ className }} extends BaseService {
 

@@ -8,4 +8,4 @@
 
 import { BaseService as CoreService} from "@adityadarma/adonis-service-repository"
 
-export default class {{ className }} extends CoreService {}
+export class {{ className }} extends CoreService {}
