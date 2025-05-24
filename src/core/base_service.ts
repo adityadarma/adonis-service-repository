@@ -36,7 +36,7 @@ export class BaseService {
   }
 
   /**
-   * Set code response
+   * Set code
    */
   protected setCode(code: number) {
     this.code = code
@@ -44,7 +44,7 @@ export class BaseService {
   }
 
   /**
-   * Set message response
+   * Set message
    */
   protected setMessage(message: string) {
     this.message = message
@@ -52,15 +52,15 @@ export class BaseService {
   }
 
   /**
-   * Set data response
+   * Set data
    */
-  protected setData(data: any) {
+  setData(data: any) {
     this.data = data
     return this
   }
 
   /**
-   * Set error response
+   * Set error
    */
   protected setError(error: any) {
     this.error = error
@@ -68,14 +68,14 @@ export class BaseService {
   }
 
   /**
-   * Get code response
+   * Get code
    */
   getCode() {
     return this.code
   }
 
   /**
-   * Get data response
+   * Get data
    */
   getData() {
     return this.data
@@ -121,11 +121,6 @@ export class BaseService {
         errors: this.error,
       }).filter(([, v]) => typeof v !== 'undefined')
     )
-  }
-
-  filterData(only: string[]) {
-    this.data.filter((item: any) => only.includes(item))
-    return this
   }
 
   toJSON() {
