@@ -94,14 +94,14 @@ test.group('Service', () => {
   test('Set resource collection from service', async ({ assert }) => {
     const service = new FakeService()
     const result = await service.getUsers()
-    console.log(result.getApiResponse())
+
     assert.equal(result.getCode(), 200)
   })
 
   test('Set resource item from service', async ({ assert }) => {
     const service = new FakeService()
     const result = await service.findUser()
-    console.log(result.getApiResponse())
+
     assert.equal(result.getCode(), 200)
   })
 })
