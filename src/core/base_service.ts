@@ -5,7 +5,7 @@ import app from '@adonisjs/core/services/app'
 import string from '@adonisjs/core/helpers/string'
 
 export class BaseService {
-  private code: number = 200
+  private code?: number = 200
   private message: string = ''
   private data: any = undefined
   private error: any = undefined
@@ -79,6 +79,14 @@ export class BaseService {
    */
   getData() {
     return this.data
+  }
+
+  /**
+   * Remove code
+   */
+  withoutCode() {
+    this.code = undefined
+    return this
   }
 
   /**
