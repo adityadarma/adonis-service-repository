@@ -59,6 +59,8 @@ async withResource({ response }: HttpContext)
   return await result.setResource(ResourceName)
   // OR
   return response.status(result.getCode()).json((await result.setResource(UserResource)).getApiResponse())
+  // OR
+  return response.status(result.getCode()).json((await result.setResource(UserResource)).withoutCode().getApiResponse())
 }
 ```
 
