@@ -3,7 +3,7 @@
   "description": "",
   "version": "3.1.2",
   "engines": {
-    "node": ">=22.0.0"
+    "node": ">=20.6.0"
   },
   "type": "module",
   "files": [
@@ -40,7 +40,7 @@
   },
   "devDependencies": {
     "@adonisjs/assembler": "^7.8.2",
-    "@adonisjs/core": "^6.16.0",
+    "@adonisjs/core": "^6.15.0",
     "@adonisjs/eslint-config": "^2.0.0",
     "@adonisjs/prettier-config": "^1.4.0",
     "@adonisjs/tsconfig": "^1.4.0",
