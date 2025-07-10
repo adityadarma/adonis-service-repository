@@ -64,12 +64,12 @@ export abstract class BaseResource<T extends LucidRow['$attributes']> {
       : new MissingValue()
   }
 
-  protected mergeResource<K>(data: K extends LucidRow ? K : never, resource: any) {
+  protected mergeResource<K>(data: K extends LucidRow | LucidRow[] ? K : never, resource: any) {
     return this.mergeResourceWhen(data, resource, null)
   }
 
   protected mergeResourceWhen<K>(
-    data: K extends LucidRow ? K : never,
+    data: K extends LucidRow | LucidRow[] ? K : never,
     resource: any,
     defaultValue: any = undefined
   ) {
