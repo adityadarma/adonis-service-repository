@@ -119,6 +119,8 @@ async methodName()
 node ace make:resource nameResource
 ```
 
+You can also create a resource with sync or async function.
+
 #### Used on service
 
 ```ts
