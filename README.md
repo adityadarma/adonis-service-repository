@@ -119,7 +119,41 @@ async methodName()
 node ace make:resource nameResource
 ```
 
-You can also create a resource with sync or async function.
+#### Sync or async toObject
+
+`toObject()` can be sync or async, whichever fits the resource. The static
+`item()` and `collection()` helpers follow it: an async `toObject()` gives back a
+promise, a sync one gives back the value directly, so you only await when the
+resource actually needs it.
+
+```ts
+// Sync -- no await needed
+class RoleResource extends BaseResource<Role> {
+  toObject() {
+    return { id: this.resource.id, name: this.resource.name }
+  }
+}
+
+const role = RoleResource.item(model) // { id: 1, name: 'Admin' }
+const roles = RoleResource.collection(models) // [{ id: 1, name: 'Admin' }]
+```
+
+```ts
+// Async -- await, e.g. when loading a relation
+class UserResource extends BaseResource<User> {
+  async toObject() {
+    return {
+      id: this.resource.id,
+      roles: RoleResource.collection(await this.resource.related('roles').query()),
+    }
+  }
+}
+
+const user = await UserResource.item(model)
+```
+
+Awaiting a sync resource is still valid, so `await Resource.item(...)` works
+either way. `setResource()` in a service accepts both without any change.
 
 #### Used on service
 

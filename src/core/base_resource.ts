@@ -6,35 +6,64 @@ type ResourceConstructor<T, R> = {
   new (resource: T): R
 }
 
+/**
+ * `toObject()` may be sync or async, and the static helpers mirror whichever
+ * one the resource picked: an async `toObject()` yields a promise, a sync one
+ * yields the value directly so callers are not forced to await.
+ */
+type ObjectOf<R extends BaseResource<any>> = ReturnType<R['toObject']>
+
+type ItemResult<R extends BaseResource<any>> =
+  ObjectOf<R> extends Promise<infer K> ? Promise<K | null> : ObjectOf<R> | null
+
+type CollectionResult<R extends BaseResource<any>> =
+  ObjectOf<R> extends Promise<infer K> ? Promise<K[]> : ObjectOf<R>[]
+
+function isPromiseLike(value: any): value is PromiseLike<any> {
+  return value !== null && typeof value === 'object' && typeof value.then === 'function'
+}
+
 export abstract class BaseResource<T extends LucidRow['$attributes']> {
   constructor(protected resource: T) {}
 
   abstract toObject(): any
 
-  static async item<K extends LucidRow['$attributes'], R extends BaseResource<K>>(
+  static item<K extends LucidRow['$attributes'], R extends BaseResource<K>>(
     this: ResourceConstructor<K, R>,
     resource: K | null
-  ): Promise<Awaited<ReturnType<R['toObject']>> | null> {
+  ): ItemResult<R> {
     if (!resource) {
-      return null
+      return null as ItemResult<R>
     }
 
-    const instance = new this(resource)
-    const data = await instance.toObject()
-    return await MissingValue.removeMissingValues(data)
+    const data = new this(resource).toObject()
+
+    if (isPromiseLike(data)) {
+      return Promise.resolve(data).then((value) =>
+        MissingValue.removeMissingValues(value)
+      ) as ItemResult<R>
+    }
+
+    return MissingValue.removeMissingValues(data) as ItemResult<R>
   }
 
-  static async collection<T extends LucidRow['$attributes'], R extends BaseResource<T>>(
+  static collection<T extends LucidRow['$attributes'], R extends BaseResource<T>>(
     this: ResourceConstructor<T, R>,
     resources: T[]
-  ): Promise<Awaited<ReturnType<R['toObject']>>[]> {
-    return await Promise.all(
-      resources.map(async (resource) => {
-        const instance = new this(resource)
-        const data = await instance.toObject()
-        return await MissingValue.removeMissingValues(data)
-      })
-    )
+  ): CollectionResult<R> {
+    const mapped = resources.map((resource) => {
+      const data = new this(resource).toObject()
+
+      return isPromiseLike(data)
+        ? Promise.resolve(data).then((value) => MissingValue.removeMissingValues(value))
+        : MissingValue.removeMissingValues(data)
+    })
+
+    /**
+     * A single async `toObject()` makes the whole collection async. When none of
+     * them are, the array is returned as-is so a sync resource stays sync.
+     */
+    return (mapped.some(isPromiseLike) ? Promise.all(mapped) : mapped) as CollectionResult<R>
   }
 
   protected when(condition: boolean, value: any, defaultValue?: any) {

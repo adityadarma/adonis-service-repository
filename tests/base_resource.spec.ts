@@ -46,6 +46,16 @@ class RoleResource extends BaseResource<Row> {
   }
 }
 
+/**
+ * Same shape as RoleResource, but a plain toObject(). Pairing the two keeps the
+ * sync and async paths asserted against identical input.
+ */
+class SyncRoleResource extends BaseResource<Row> {
+  toObject() {
+    return { id: this.resource.id, name: this.resource.name }
+  }
+}
+
 function probe(resource: Row = {}) {
   return new Probe(resource)
 }
@@ -101,6 +111,53 @@ test.group('BaseResource | collection', () => {
     const result = await Probe.collection([row({ id: 1, role: new MissingValue() })])
 
     assert.deepEqual(result, [{ id: 1 }])
+  })
+})
+
+test.group('BaseResource | sync toObject', () => {
+  test('Return the item without a promise', ({ assert }) => {
+    const result = SyncRoleResource.item(row({ id: 1, name: 'Admin', secret: 'hidden' }))
+
+    assert.notInstanceOf(result, Promise)
+    assert.deepEqual(result, { id: 1, name: 'Admin' })
+  })
+
+  test('Return null for a null record without a promise', ({ assert }) => {
+    assert.isNull(SyncRoleResource.item(null))
+  })
+
+  test('Return the collection without a promise', ({ assert }) => {
+    const result = SyncRoleResource.collection([
+      row({ id: 1, name: 'Admin' }),
+      row({ id: 2, name: 'User' }),
+    ])
+
+    assert.notInstanceOf(result, Promise)
+    assert.deepEqual(result, [
+      { id: 1, name: 'Admin' },
+      { id: 2, name: 'User' },
+    ])
+  })
+
+  test('Strip missing values on the sync path', ({ assert }) => {
+    class SyncProbe extends BaseResource<Row> {
+      toObject() {
+        return { id: this.resource.id, role: new MissingValue() }
+      }
+    }
+
+    assert.deepEqual(SyncProbe.item(row({ id: 1 })), { id: 1 })
+    assert.deepEqual(SyncProbe.collection([row({ id: 1 })]), [{ id: 1 }])
+  })
+
+  test('Stay awaitable so callers may await either kind', async ({ assert }) => {
+    assert.deepEqual(await SyncRoleResource.item(row({ id: 1, name: 'Admin' })), {
+      id: 1,
+      name: 'Admin',
+    })
+    assert.deepEqual(await SyncRoleResource.collection([row({ id: 1, name: 'Admin' })]), [
+      { id: 1, name: 'Admin' },
+    ])
   })
 })
 
