@@ -1,4 +1,4 @@
-import { generators as baseGenerators } from '@adonisjs/application'
+import { generators as baseGenerators } from '@adonisjs/core/app'
 import StringBuilder from '@poppinss/utils/string_builder'
 
 const generators = {
