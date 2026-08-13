@@ -43,7 +43,7 @@ export abstract class BaseResource<T extends LucidRow['$attributes']> {
     }
 
     return defaultValue !== undefined
-      ? defaultValue === 'function'
+      ? typeof defaultValue === 'function'
         ? defaultValue()
         : defaultValue
       : new MissingValue()
@@ -74,13 +74,13 @@ export abstract class BaseResource<T extends LucidRow['$attributes']> {
     defaultValue: any = undefined
   ) {
     if (Array.isArray(data)) {
-      return data && data !== undefined && data.length > 0
+      return data.length > 0
         ? resource.collection(data)
         : defaultValue !== undefined
           ? defaultValue
           : new MissingValue()
     } else {
-      return data && data !== undefined
+      return data
         ? resource.item(data)
         : defaultValue !== undefined
           ? defaultValue
@@ -93,9 +93,16 @@ export abstract class BaseResource<T extends LucidRow['$attributes']> {
     resource: any,
     defaultValue: any = undefined
   ) {
-    const related = this.resource.get(relationship)
+    /**
+     * `$getRelated` is the Lucid API for reading a preloaded relationship. It
+     * returns undefined when the relationship was never preloaded.
+     */
+    const row = this.resource as any
+    const related =
+      typeof row.$getRelated === 'function' ? row.$getRelated(relationship) : undefined
+
     if (related !== undefined && !(related instanceof MissingValue)) {
-      return this.mergeResourceWhen(this.resource.get(relationship), resource)
+      return this.mergeResourceWhen(related, resource)
     }
 
     return defaultValue !== undefined ? defaultValue : new MissingValue()

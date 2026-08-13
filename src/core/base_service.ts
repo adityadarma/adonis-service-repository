@@ -4,42 +4,62 @@ import ServiceException from '../exceptions/service_exception.js'
 import app from '@adonisjs/core/services/app'
 import string from '@adonisjs/core/helpers/string'
 
+/**
+ * Paginate meta key converters. Keyed explicitly rather than looked up on the
+ * string helper by name, so a rename breaks at compile time.
+ */
+const PAGINATE_CASE_CONVERTERS = {
+  camelCase: (key: string) => string.camelCase(key),
+  snakeCase: (key: string) => string.snakeCase(key),
+}
+
+export type PaginateCase = keyof typeof PAGINATE_CASE_CONVERTERS
+
 export class BaseService {
-  private code?: number = 200
-  private message: string = ''
-  private data: any = undefined
-  private error: any = undefined
-  private meta: Record<string, any> | undefined = undefined
-  private paginateCase: string | undefined = undefined
+  /**
+   * Declared as ECMAScript private fields rather than TypeScript `private`.
+   * TypeScript's `private` is compile-time only, so a subclass method named
+   * `code`, `message` or `data` would be silently overwritten by the field
+   * initialiser at runtime.
+   */
+  #code?: number = 200
+  #message: string = ''
+  #data: any = undefined
+  #error: any = undefined
+  #meta: Record<string, any> | undefined = undefined
+  #paginateCase: PaginateCase | undefined = undefined
 
   /**
    * Set paginate string case
    */
-  protected setPaginateCase(stringCase: 'camelCase' | 'snakeCase') {
-    this.paginateCase = stringCase
+  protected setPaginateCase(stringCase: PaginateCase) {
+    this.#paginateCase = stringCase
     return this
   }
 
   protected convertPaginateCase(meta: Record<string, any>) {
-    if (this.paginateCase) {
-      const method: string = this.paginateCase
-      meta = Object.entries(meta).reduce(
-        (acc, [key, value]) => {
-          acc[(string as any)[method](key)] = value
-          return acc
-        },
-        {} as Record<string, any>
-      )
+    const paginateCase = this.#paginateCase
+
+    if (!paginateCase) {
+      return meta
     }
 
-    return meta
+    const convert = PAGINATE_CASE_CONVERTERS[paginateCase]
+
+    return Object.entries(meta).reduce(
+      (acc, [key, value]) => {
+        acc[convert(key)] = value
+        return acc
+      },
+      {} as Record<string, any>
+    )
   }
 
   /**
    * Set code
    */
   protected setCode(code: number) {
-    this.code = code
+    this.#code = code
     return this
   }
 
@@ -47,7 +67,7 @@ export class BaseService {
    * Set message
    */
   protected setMessage(message: string) {
-    this.message = message
+    this.#message = message
     return this
   }
 
@@ -55,7 +75,7 @@ export class BaseService {
    * Set data
    */
   setData(data: any) {
-    this.data = data
+    this.#data = data
     return this
   }
 
@@ -63,7 +83,7 @@ export class BaseService {
    * Set error
    */
   protected setError(error: any) {
-    this.error = error
+    this.#error = error
     return this
   }
 
@@ -71,21 +91,21 @@ export class BaseService {
    * Get code
    */
   getCode() {
-    return this.code
+    return this.#code
   }
 
   /**
    * Get data
    */
   getData() {
-    return this.data
+    return this.#data
   }
 
   /**
    * Remove code
    */
   withoutCode() {
-    this.code = undefined
+    this.#code = undefined
     return this
   }
 
@@ -93,14 +113,14 @@ export class BaseService {
    * Set data to resource
    */
   async setResource(resource: any) {
-    if (!this.error) {
-      if (this.data instanceof SimplePaginator) {
-        this.meta = this.convertPaginateCase(this.data.getMeta())
-        this.data = await resource.collection(this.data.all())
-      } else if (Array.isArray(this.data)) {
-        this.data = await resource.collection(this.data)
+    if (!this.#error) {
+      if (this.#data instanceof SimplePaginator) {
+        this.#meta = this.convertPaginateCase(this.#data.getMeta())
+        this.#data = await resource.collection(this.#data.all())
+      } else if (Array.isArray(this.#data)) {
+        this.#data = await resource.collection(this.#data)
       } else {
-        this.data = await resource.item(this.data)
+        this.#data = await resource.item(this.#data)
       }
     }
 
@@ -111,22 +131,22 @@ export class BaseService {
    * get Api response to json
    */
   getApiResponse() {
-    if (this.error) {
-      this.data = undefined
+    if (this.#error) {
+      this.#data = undefined
     }
 
-    if (this.data instanceof SimplePaginator) {
-      this.meta = this.data.getMeta()
-      this.data = this.data.all()
+    if (this.#data instanceof SimplePaginator) {
+      this.#meta = this.convertPaginateCase(this.#data.getMeta())
+      this.#data = this.#data.all()
     }
 
     return Object.fromEntries(
       Object.entries({
-        code: this.code,
-        message: this.message,
-        meta: this.meta,
-        data: this.data,
-        errors: this.error,
+        code: this.#code,
+        message: this.#message,
+        meta: this.#meta,
+        data: this.#data,
+        errors: this.#error,
       }).filter(([, v]) => typeof v !== 'undefined')
     )
   }
@@ -139,7 +159,7 @@ export class BaseService {
    * Reformat exception response
    */
   protected exceptionCustom(error: Exception, message = 'Something Wrong!') {
-    let code =
+    const code =
       error.status !== undefined && error.status >= 100 && error.status < 600 ? error.status : 500
 
     if (error instanceof ServiceException) {
@@ -148,11 +168,11 @@ export class BaseService {
 
     if (!app.inProduction) {
       message = error.message
-      this.error = error.stack
+      this.#error = error.stack
     }
 
-    this.code = code
-    this.message = message
+    this.#code = code
+    this.#message = message
 
     return this
   }
