@@ -4,7 +4,22 @@ import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 import { BaseResource } from '../src/core/base_resource.js'
 import { MissingValue } from '../src/missing_value.js'
 
-type Row = Record<string, any>
+class MockModel extends BaseModel {
+  @column()
+  declare id: number
+  @column()
+  declare name: string
+  @column()
+  declare secret: string
+  @column()
+  declare role: any
+
+  constructor(data: any = {}) {
+    super()
+    if (data) Object.assign(this, data)
+  }
+}
+type Row = MockModel
 
 /**
  * Exposes BaseResource's protected conditional helpers so each branch can be
@@ -12,7 +27,7 @@ type Row = Record<string, any>
  */
 class Probe extends BaseResource<Row> {
   async toObject() {
-    return this.resource
+    return { id: this.resource.id, role: this.resource.role }
   }
 
   callWhen(condition: boolean, value: any, defaultValue?: any) {
@@ -56,16 +71,16 @@ class SyncRoleResource extends BaseResource<Row> {
   }
 }
 
-function probe(resource: Row = {}) {
-  return new Probe(resource)
+function probe(resource: any = {}) {
+  return new Probe(new MockModel(resource))
 }
 
 /**
  * Widens an object literal to `Row` so it matches the resource generic that
  * `item()` / `collection()` infer from the resource class.
  */
-function row(value: Row): Row {
-  return value
+function row(value: any): Row {
+  return new MockModel(value)
 }
 
 test.group('BaseResource | item', () => {
@@ -323,17 +338,17 @@ test.group('BaseResource | whenLoaded', () => {
   }
 
   test('Map the relation when it is preloaded', async ({ assert }) => {
-    const result = await new Probe(preloadRole(user())).callWhenLoaded('role', RoleResource)
+    const result = await new Probe(preloadRole(user()) as any).callWhenLoaded('role', RoleResource)
 
     assert.deepEqual(result, { id: 1, name: 'Admin' })
   })
 
   test('Return a MissingValue when the relation is not preloaded', async ({ assert }) => {
-    assert.instanceOf(new Probe(user()).callWhenLoaded('role', RoleResource), MissingValue)
+    assert.instanceOf(new Probe(user() as any).callWhenLoaded('role', RoleResource), MissingValue)
   })
 
   test('Return the default when the relation is not preloaded', async ({ assert }) => {
-    assert.equal(new Probe(user()).callWhenLoaded('role', RoleResource, 'none'), 'none')
+    assert.equal(new Probe(user() as any).callWhenLoaded('role', RoleResource, 'none'), 'none')
   })
 
   test('Map a preloaded relation through the full resource pipeline', async ({ assert }) => {
@@ -368,10 +383,10 @@ test.group('BaseResource | whenLoaded', () => {
   test('Return a MissingValue when the relation holds a MissingValue', async ({ assert }) => {
     const resource = { $getRelated: () => new MissingValue() }
 
-    assert.instanceOf(new Probe(resource).callWhenLoaded('role', RoleResource), MissingValue)
+    assert.instanceOf(new Probe(resource as any).callWhenLoaded('role', RoleResource), MissingValue)
   })
 
   test('Return a MissingValue when the row has no relationship API', async ({ assert }) => {
-    assert.instanceOf(new Probe({}).callWhenLoaded('role', RoleResource), MissingValue)
+    assert.instanceOf(new Probe({} as any).callWhenLoaded('role', RoleResource), MissingValue)
   })
 })
