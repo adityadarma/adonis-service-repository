@@ -33,7 +33,7 @@
     "test": "c8 npm run quick:test",
     "precompile": "npm run lint",
     "compile": "tsdown && tsc --emitDeclarationOnly --declaration",
-    "postcompile": "npm run copy:templates",
+    "postcompile": "npm run copy:templates && npm run index:commands",
     "build": "npm run compile",
     "release": "release-it",
     "version": "npm run build",
