@@ -128,6 +128,28 @@ export class BaseService {
   }
 
   /**
+   * Set data to resource
+   */
+  async setTransform(resource: any) {
+    if (app.version !== null && app.version.major < 7) {
+      this.#message = 'setTransform unsupport version AdonisJS'
+      this.#error = 500
+      return this
+    }
+
+    if (!this.#error) {
+      if (this.#data instanceof SimplePaginator) {
+        this.#meta = this.convertPaginateCase(this.#data.getMeta())
+        this.#data = await resource.transform(this.#data.all())
+      } else {
+        this.#data = await resource.transform(this.#data)
+      }
+    }
+
+    return this
+  }
+
+  /**
    * get Api response to json
    */
   getApiResponse() {
