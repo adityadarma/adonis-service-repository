@@ -38,36 +38,33 @@
     "prepublishOnly": "npm run build",
     "index:commands": "adonis-kit index build/commands"
   },
-  "dependencies": {
-    "@poppinss/utils": "^6.9.3 || ^7.0.1"
-  },
   "devDependencies": {
-    "@adonisjs/assembler": "^7.8.2",
-    "@adonisjs/core": "^6.19.0",
-    "@adonisjs/eslint-config": "^2.1.2",
-    "@adonisjs/lucid": "^21.8.2",
+    "@adonisjs/assembler": "^8.0.0",
+    "@adonisjs/core": "^7.0.0",
+    "@adonisjs/eslint-config": "^3.0.0",
+    "@adonisjs/http-transformers": "^2.3.1",
     "@adonisjs/prettier-config": "^1.4.5",
-    "@adonisjs/tsconfig": "^1.4.1",
-    "@japa/assert": "^4.0.1",
-    "@japa/runner": "^4.4.0",
-    "@release-it/conventional-changelog": "^10.0.1",
-    "@swc/core": "1.14.0",
-    "@types/luxon": "^3.4.2",
-    "@types/node": "^24.9.2",
-    "c8": "^10.1.3",
+    "@adonisjs/tsconfig": "^2.0.0",
+    "@japa/assert": "^4.2.0",
+    "@japa/runner": "^5.3.0",
+    "@poppinss/ts-exec": "^1.4.4",
+    "@release-it/conventional-changelog": "^10.0.5",
+    "@types/luxon": "^3.7.4",
+    "@types/node": "^25.3.3",
+    "c8": "^11.0.0",
     "copyfiles": "^2.4.1",
-    "del-cli": "^7.0.0",
-    "eslint": "^9.38.0",
+    "cross-env": "^10.1.0",
+    "eslint": "^10.0.2",
     "luxon": "^3.5.0",
-    "np": "^10.0.6",
-    "prettier": "^3.6.2",
-    "release-it": "^19.0.5",
-    "ts-node-maintained": "^10.9.5",
+    "prettier": "^3.8.1",
+    "release-it": "^19.2.4",
+    "tsdown": "^0.20.3",
     "typescript": "^5.9.3"
   },
   "peerDependencies": {
-    "@adonisjs/core": "^6.15.0 || ^7.0.0",
-    "@adonisjs/lucid": "^21.2.0 || ^22.0.0"
+    "@adonisjs/assembler": "^8.0.0",
+    "@adonisjs/core": "^7.0.0",
+    "@adonisjs/lucid": "^22.0.0"
   },
   "keywords": [
     "service-repository-pettern",
@@ -86,6 +83,26 @@
     "access": "public",
     "tag": "latest",
     "provenance": true
+  },
+  "peerDependenciesMeta": {
+    "@adonisjs/assembler": {
+      "optional": true
+    }
+  },
+  "tsdown": {
+    "entry": [
+      "./index.ts",
+      "./configure.ts"
+    ],
+    "outDir": "./build",
+    "clean": true,
+    "format": "esm",
+    "minify": "dce-only",
+    "fixedExtension": false,
+    "dts": false,
+    "treeshake": false,
+    "sourcemaps": false,
+    "target": "esnext"
   },
   "release-it": {
     "git": {
@@ -120,13 +137,5 @@
       "tests/**"
     ]
   },
-  "eslintConfig": {
-    "extends": "@adonisjs/eslint-config/package"
-  },
-  "prettier": "@adonisjs/prettier-config",
-  "commitlint": {
-    "extends": [
-      "@commitlint/config-conventional"
-    ]
-  }
+  "prettier": "@adonisjs/prettier-config"
 }

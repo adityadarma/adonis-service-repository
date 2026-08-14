@@ -1,7 +1,7 @@
 import { test } from '@japa/runner'
 import ResourcePublish from '../commands/resource_publish.js'
 import ServicePublish from '../commands/service_publish.js'
-import { createTestApp, TestApp } from './helpers/ace.js'
+import { createTestApp, type TestApp } from './helpers/ace.js'
 
 test.group('service:publish', (group) => {
   let app: TestApp

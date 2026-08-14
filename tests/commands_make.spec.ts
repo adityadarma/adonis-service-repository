@@ -2,7 +2,7 @@ import { test } from '@japa/runner'
 import MakeRepository from '../commands/repository.js'
 import MakeResource from '../commands/resource.js'
 import MakeService from '../commands/service.js'
-import { createTestApp, TestApp } from './helpers/ace.js'
+import { createTestApp, type TestApp } from './helpers/ace.js'
 
 test.group('make:repository', (group) => {
   let app: TestApp

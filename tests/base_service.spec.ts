@@ -4,6 +4,7 @@ import { setApp } from '@adonisjs/core/services/app'
 import { BaseResource } from '../src/core/base_resource.js'
 import { BaseService } from '../src/core/base_service.js'
 import ServiceException from '../src/exceptions/service_exception.js'
+import { BaseModel, column } from '@adonisjs/lucid/orm'
 
 /**
  * exceptionCustom() reads `app.inProduction`, so the app service needs to be
@@ -11,6 +12,14 @@ import ServiceException from '../src/exceptions/service_exception.js'
  */
 function useApp(inProduction: boolean) {
   setApp({ inProduction } as any)
+}
+
+class User extends BaseModel {
+  @column({ isPrimary: true })
+  declare id: number
+
+  @column()
+  declare name: string
 }
 
 /**
@@ -41,7 +50,7 @@ class TestService extends BaseService {
   }
 }
 
-class PlainResource extends BaseResource<{ id: number; name: string }> {
+class PlainResource extends BaseResource<User> {
   async toObject() {
     return { id: this.resource.id, name: this.resource.name }
   }

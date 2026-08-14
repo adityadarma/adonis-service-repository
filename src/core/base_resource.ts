@@ -1,5 +1,5 @@
-import { LucidRow } from '@adonisjs/lucid/types/model'
-import { ExtractModelRelations } from '@adonisjs/lucid/types/relations'
+import { type LucidRow } from '@adonisjs/lucid/types/model'
+import { type ExtractModelRelations } from '@adonisjs/lucid/types/relations'
 import { MissingValue } from '../missing_value.js'
 
 type ResourceConstructor<T, R> = {
@@ -23,12 +23,12 @@ function isPromiseLike(value: any): value is PromiseLike<any> {
   return value !== null && typeof value === 'object' && typeof value.then === 'function'
 }
 
-export abstract class BaseResource<T extends LucidRow['$attributes']> {
+export abstract class BaseResource<T extends LucidRow> {
   constructor(protected resource: T) {}
 
   abstract toObject(): any
 
-  static item<K extends LucidRow['$attributes'], R extends BaseResource<K>>(
+  static item<K extends LucidRow, R extends BaseResource<K>>(
     this: ResourceConstructor<K, R>,
     resource: K | null
   ): ItemResult<R> {
@@ -47,7 +47,7 @@ export abstract class BaseResource<T extends LucidRow['$attributes']> {
     return MissingValue.removeMissingValues(data) as ItemResult<R>
   }
 
-  static collection<T extends LucidRow['$attributes'], R extends BaseResource<T>>(
+  static collection<T extends LucidRow, R extends BaseResource<T>>(
     this: ResourceConstructor<T, R>,
     resources: T[]
   ): CollectionResult<R> {

@@ -2,7 +2,7 @@ import { test } from '@japa/runner'
 import { BaseModel, belongsTo, column } from '@adonisjs/lucid/orm'
 import { BaseResource } from '../src/core/base_resource.js'
 import { BaseService } from '../src/core/base_service.js'
-import { BelongsTo } from '@adonisjs/lucid/types/relations'
+import { type BelongsTo } from '@adonisjs/lucid/types/relations'
 
 test.group('Service', () => {
   class Role extends BaseModel {
