@@ -16,6 +16,7 @@
     "build/configure.d.ts",
     "build/configure.js"
   ],
+  "main": "build/index.js",
   "exports": {
     ".": "./build/index.js",
     "./exceptions/*": "./build/src/exceptions/*.js",
