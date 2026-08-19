@@ -174,7 +174,7 @@ export class BaseService {
   /**
    * Reformat exception response
    */
-  protected exceptionCustom(error: Exception, message = 'Something Wrong!') {
+  protected exceptionCustom(error: any, message = 'Something Wrong!') {
     const code =
       error.status !== undefined && error.status >= 100 && error.status < 600 ? error.status : 500
 
