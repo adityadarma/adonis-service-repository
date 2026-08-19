@@ -1,4 +1,3 @@
-import { type Exception } from '@adonisjs/core/exceptions'
 import { SimplePaginator } from '@adonisjs/lucid/database'
 import ServiceException from '../exceptions/service_exception.js'
 import app from '@adonisjs/core/services/app'
