@@ -2,6 +2,34 @@ import { SimplePaginator } from '@adonisjs/lucid/database'
 import ServiceException from '../exceptions/service_exception.js'
 import app from '@adonisjs/core/services/app'
 import string from '@adonisjs/core/helpers/string'
+import BaseSerializer from './base_serializer.js'
+import type { BaseTransformer } from '@adonisjs/core/transformers'
+import type { LucidRow } from '@adonisjs/lucid/types/model'
+import type { ResourceClass } from './base_resource.js'
+
+/**
+ * `transform()` and `paginate()` are static members of `BaseTransformer`, so
+ * `setTransform()` receives the transformer class itself, not an instance.
+ */
+export type TransformerClass = Pick<typeof BaseTransformer, 'transform' | 'paginate'> & {
+  new (resource: any, ...rest: any[]): BaseTransformer<any>
+}
+
+/**
+ * Internal shape both `setResource()` and `setTransform()` reduce down to. Rows
+ * stay untyped here because the data on the service is only known at runtime;
+ * the public methods are the ones that carry the types.
+ */
+type ResourceHandlers = {
+  item(row: unknown): unknown
+  collection(rows: unknown[]): unknown
+}
+
+/**
+ * The serializer holds no per-request state, so one instance is shared instead
+ * of allocating a new one on every `setTransform()` call.
+ */
+const serializer = new BaseSerializer()
 
 /**
  * Paginate meta key converters. Keyed explicitly rather than looked up on the
@@ -109,17 +137,21 @@ export class BaseService {
   }
 
   /**
-   * Set data to resource
+   * Routes the current data through a pair of item/collection handlers,
+   * unwrapping a paginator into its rows plus meta along the way.
+   *
+   * Shared by `setResource()` and `setTransform()` so the paginator, array and
+   * single row branches only exist in one place.
    */
-  async setResource(resource: any) {
+  async #applyResource(handlers: ResourceHandlers): Promise<this> {
     if (!this.#error) {
       if (this.#data instanceof SimplePaginator) {
         this.#meta = this.convertPaginateCase(this.#data.getMeta())
-        this.#data = await resource.collection(this.#data.all())
+        this.#data = await handlers.collection(this.#data.all())
       } else if (Array.isArray(this.#data)) {
-        this.#data = await resource.collection(this.#data)
+        this.#data = await handlers.collection(this.#data)
       } else {
-        this.#data = await resource.item(this.#data)
+        this.#data = await handlers.item(this.#data)
       }
     }
 
@@ -129,17 +161,30 @@ export class BaseService {
   /**
    * Set data to resource
    */
-  async setTransform(resource: any) {
-    if (!this.#error) {
-      if (this.#data instanceof SimplePaginator) {
-        this.#meta = this.convertPaginateCase(this.#data.getMeta())
-        this.#data = await resource.transform(this.#data.all())
-      } else {
-        this.#data = await resource.transform(this.#data)
-      }
-    }
+  async setResource<T extends LucidRow>(resource: ResourceClass<T>): Promise<this> {
+    return this.#applyResource({
+      item: (row) => resource.item(row as T | null),
+      collection: (rows) => resource.collection(rows as T[]),
+    })
+  }
 
-    return this
+  /**
+   * Set data to transformer
+   *
+   * The resolver comes from the application container so transformers that
+   * depend on injected services resolve against the app bindings, instead of
+   * the throwaway container the serializer would otherwise create.
+   */
+  async setTransform(transformer: TransformerClass): Promise<this> {
+    const resolver = app.container.createResolver()
+
+    return this.#applyResource({
+      item: (row) =>
+        row === null || row === undefined
+          ? null
+          : serializer.serialize(transformer.transform(row), resolver),
+      collection: (rows) => serializer.serialize(transformer.transform(rows), resolver),
+    })
   }
 
   /**

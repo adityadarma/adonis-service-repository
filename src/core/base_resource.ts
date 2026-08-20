@@ -23,6 +23,23 @@ function isPromiseLike(value: any): value is PromiseLike<any> {
   return value !== null && typeof value === 'object' && typeof value.then === 'function'
 }
 
+/**
+ * A `BaseResource` subclass as consumed by `BaseService.setResource()`. Only the
+ * static `item()` / `collection()` helpers get called; the constructor is listed
+ * so the row type `T` can be inferred from the class that is passed in.
+ *
+ * The return types are deliberately `unknown` rather than `ItemResult` /
+ * `CollectionResult`: the statics are generic over `this`, so reading them off
+ * the class erases the type arguments and no precise return type would match.
+ */
+export type ResourceClass<T extends LucidRow = LucidRow> = ResourceConstructor<
+  T,
+  BaseResource<T>
+> & {
+  item(resource: T | null): unknown
+  collection(resources: T[]): unknown
+}
+
 export abstract class BaseResource<T extends LucidRow> {
   constructor(protected resource: T) {}
 

@@ -1,17 +1,20 @@
 import { test } from '@japa/runner'
 import { SimplePaginator } from '@adonisjs/lucid/database'
 import { setApp } from '@adonisjs/core/services/app'
+import { Container } from '@adonisjs/core/container'
+import { BaseTransformer } from '@adonisjs/core/transformers'
 import { BaseResource } from '../src/core/base_resource.js'
 import { BaseService } from '../src/core/base_service.js'
 import ServiceException from '../src/exceptions/service_exception.js'
 import { BaseModel, column } from '@adonisjs/lucid/orm'
 
 /**
- * exceptionCustom() reads `app.inProduction`, so the app service needs to be
- * primed. Only that flag is used, so a stub is enough.
+ * exceptionCustom() reads `app.inProduction` and setTransform() reads
+ * `app.container`, so the app service needs to be primed. Those two are all
+ * that get touched, so a stub is enough.
  */
-function useApp(inProduction: boolean) {
-  setApp({ inProduction } as any)
+function useApp(inProduction: boolean, container: Container<any> = new Container()) {
+  setApp({ inProduction, container } as any)
 }
 
 class User extends BaseModel {
@@ -53,6 +56,52 @@ class TestService extends BaseService {
 class PlainResource extends BaseResource<User> {
   async toObject() {
     return { id: this.resource.id, name: this.resource.name }
+  }
+}
+
+class PlainTransformer extends BaseTransformer<User> {
+  toObject() {
+    return { id: this.resource.id, name: this.resource.name }
+  }
+}
+
+class RoleTransformer extends BaseTransformer<{ id: number; title: string }> {
+  toObject() {
+    return { id: this.resource.id, title: this.resource.title }
+  }
+}
+
+class NestedTransformer extends BaseTransformer<{
+  id: number
+  name: string
+  roles: { id: number; title: string }[]
+}> {
+  toObject() {
+    return {
+      id: this.resource.id,
+      name: this.resource.name,
+      roles: RoleTransformer.transform(this.resource.roles),
+    }
+  }
+}
+
+class Greeter {
+  greet(name: string) {
+    return `Hello ${name}`
+  }
+}
+
+/**
+ * Proves the resolver handed to the serializer is the application container's:
+ * the container calls `toObject()`, so a rebound Greeter has to show up here.
+ */
+class InjectedTransformer extends BaseTransformer<{ name: string }> {
+  static containerInjections = {
+    toObject: { dependencies: [Greeter] },
+  }
+
+  toObject(greeter: Greeter) {
+    return { greeting: greeter.greet(this.resource.name) }
   }
 }
 
@@ -320,6 +369,167 @@ test.group('BaseService | setResource', () => {
     const service = new TestService().setData({ id: 1, name: 'Admin' })
 
     assert.strictEqual(await service.setResource(PlainResource), service)
+  })
+})
+
+test.group('BaseService | setTransform', (group) => {
+  group.each.setup(() => useApp(false))
+
+  test('Map a single record through the transformer', async ({ assert }) => {
+    const service = new TestService().setData({ id: 1, name: 'Admin', secret: 'hidden' })
+
+    await service.setTransform(PlainTransformer)
+
+    assert.deepEqual(service.getData(), { id: 1, name: 'Admin' })
+  })
+
+  test('Map an array through the transformer collection', async ({ assert }) => {
+    const service = new TestService().setData([
+      { id: 1, name: 'Admin' },
+      { id: 2, name: 'User' },
+    ])
+
+    await service.setTransform(PlainTransformer)
+
+    assert.deepEqual(service.getData(), [
+      { id: 1, name: 'Admin' },
+      { id: 2, name: 'User' },
+    ])
+  })
+
+  test('Map an empty array to an empty list', async ({ assert }) => {
+    const service = new TestService().setData([])
+
+    await service.setTransform(PlainTransformer)
+
+    assert.deepEqual(service.getData(), [])
+  })
+
+  test('Map a null record to null', async ({ assert }) => {
+    const service = new TestService().setData(null)
+
+    await service.setTransform(PlainTransformer)
+
+    assert.isNull(service.getData())
+  })
+
+  test('Map an undefined record to null', async ({ assert }) => {
+    const service = new TestService().setData(undefined)
+
+    await service.setTransform(PlainTransformer)
+
+    assert.isNull(service.getData())
+  })
+
+  test('Skip the transformer entirely when an error is set', async ({ assert }) => {
+    const service = new TestService()
+    service.setData({ id: 1, name: 'Admin', secret: 'hidden' })
+    service.fail('boom')
+
+    await service.setTransform(PlainTransformer)
+
+    assert.deepEqual(service.getData(), { id: 1, name: 'Admin', secret: 'hidden' })
+  })
+
+  test('Return the service instance for chaining', async ({ assert }) => {
+    const service = new TestService().setData({ id: 1, name: 'Admin' })
+
+    assert.strictEqual(await service.setTransform(PlainTransformer), service)
+  })
+
+  test('Leave the response unwrapped', async ({ assert }) => {
+    const service = new TestService().setData({ id: 1, name: 'Admin' })
+
+    await service.setTransform(PlainTransformer)
+
+    assert.deepEqual(service.getApiResponse(), {
+      code: 200,
+      message: '',
+      data: { id: 1, name: 'Admin' },
+    })
+  })
+
+  test('Resolve nested transformers', async ({ assert }) => {
+    const service = new TestService().setData({
+      id: 1,
+      name: 'Admin',
+      roles: [{ id: 7, title: 'Owner' }],
+    })
+
+    await service.setTransform(NestedTransformer)
+
+    assert.deepEqual(service.getData(), {
+      id: 1,
+      name: 'Admin',
+      roles: [{ id: 7, title: 'Owner' }],
+    })
+  })
+
+  test('Resolve transformer dependencies from the application container', async ({ assert }) => {
+    const container = new Container()
+    container.bindValue(Greeter, { greet: (name: string) => `Injected ${name}` } as Greeter)
+    useApp(false, container)
+
+    const service = new TestService().setData({ name: 'Admin' })
+
+    await service.setTransform(InjectedTransformer)
+
+    assert.deepEqual(service.getData(), { greeting: 'Injected Admin' })
+  })
+})
+
+test.group('BaseService | setTransform | pagination', (group) => {
+  group.each.setup(() => useApp(false))
+
+  test('Flatten a paginator into transformed data plus meta', async ({ assert }) => {
+    const service = new TestService()
+    service.setData(paginator([{ id: 1, name: 'Admin', secret: 'hidden' }]))
+
+    await service.setTransform(PlainTransformer)
+    const response = service.getApiResponse()
+
+    assert.deepEqual(response.data, [{ id: 1, name: 'Admin' }])
+    assert.equal(response.meta.total, 1)
+    assert.equal(response.meta.currentPage, 1)
+  })
+
+  test('Flatten an empty paginator to an empty list', async ({ assert }) => {
+    const service = new TestService().setData(paginator([]))
+
+    await service.setTransform(PlainTransformer)
+    const response = service.getApiResponse()
+
+    assert.deepEqual(response.data, [])
+    assert.equal(response.meta.total, 0)
+  })
+
+  test('Convert paginate meta keys to snake_case', async ({ assert }) => {
+    const service = new TestService()
+    service.withPaginateCase('snakeCase')
+    service.setData(paginator([{ id: 1, name: 'Admin' }]))
+
+    await service.setTransform(PlainTransformer)
+    const response = service.getApiResponse()
+
+    assert.deepEqual(response.data, [{ id: 1, name: 'Admin' }])
+    assert.property(response.meta, 'per_page')
+    assert.notProperty(response.meta, 'perPage')
+  })
+
+  test('Produce the same meta keys as setResource', async ({ assert }) => {
+    const withResource = new TestService()
+    withResource.setData(paginator([{ id: 1, name: 'Admin' }]))
+    await withResource.setResource(PlainResource)
+
+    const withTransform = new TestService()
+    withTransform.setData(paginator([{ id: 1, name: 'Admin' }]))
+    await withTransform.setTransform(PlainTransformer)
+
+    assert.deepEqual(
+      Object.keys(withResource.getApiResponse().meta),
+      Object.keys(withTransform.getApiResponse().meta)
+    )
+    assert.deepEqual(withResource.getData(), withTransform.getData())
   })
 })
 
