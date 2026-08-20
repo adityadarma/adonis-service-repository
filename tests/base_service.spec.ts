@@ -6,7 +6,16 @@ import { BaseTransformer } from '@adonisjs/core/transformers'
 import { BaseResource } from '../src/core/base_resource.js'
 import { BaseService } from '../src/core/base_service.js'
 import ServiceException from '../src/exceptions/service_exception.js'
-import { BaseModel, column } from '@adonisjs/lucid/orm'
+import { BaseModel, column, hasMany } from '@adonisjs/lucid/orm'
+import type { HasMany } from '@adonisjs/lucid/types/relations'
+
+/**
+ * Loads Lucid's `declare module '@adonisjs/core/transformers'` augmentation, the
+ * same way a real application picks it up through the database provider. It adds
+ * relation aware helpers whose parameter type depends on the model, so it has to
+ * be in the program for the setTransform assignability tests to mean anything.
+ */
+import type {} from '@adonisjs/lucid/database_provider'
 
 /**
  * exceptionCustom() reads `app.inProduction` and setTransform() reads
@@ -82,6 +91,32 @@ class NestedTransformer extends BaseTransformer<{
       name: this.resource.name,
       roles: RoleTransformer.transform(this.resource.roles),
     }
+  }
+}
+
+class Post extends BaseModel {
+  @column({ isPrimary: true })
+  declare id: number
+}
+
+class Author extends BaseModel {
+  @column({ isPrimary: true })
+  declare id: number
+
+  @hasMany(() => Post)
+  declare posts: HasMany<typeof Post>
+}
+
+/**
+ * Regression guard for a compile time failure: Lucid's augmentation types
+ * `withCount()` as `T extends LucidRow ? ExtractModelRelations<T> : string`.
+ * Pinning the transformer instance to `BaseTransformer<any>` collapsed that to
+ * `string`, and a transformer for a model with declared relations stopped being
+ * assignable to setTransform(). The value of this test is that it type checks.
+ */
+class AuthorTransformer extends BaseTransformer<Author> {
+  toObject() {
+    return { id: this.resource.id }
   }
 }
 
@@ -463,6 +498,14 @@ test.group('BaseService | setTransform', (group) => {
       name: 'Admin',
       roles: [{ id: 7, title: 'Owner' }],
     })
+  })
+
+  test('Accept a transformer for a model with declared relations', async ({ assert }) => {
+    const service = new TestService().setData({ id: 1 })
+
+    await service.setTransform(AuthorTransformer)
+
+    assert.deepEqual(service.getData(), { id: 1 })
   })
 
   test('Resolve transformer dependencies from the application container', async ({ assert }) => {

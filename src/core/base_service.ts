@@ -10,9 +10,15 @@ import type { ResourceClass } from './base_resource.js'
 /**
  * `transform()` and `paginate()` are static members of `BaseTransformer`, so
  * `setTransform()` receives the transformer class itself, not an instance.
+ *
+ * `T` is inferred from the constructor and must stay a real type rather than
+ * `any`. Lucid augments `BaseTransformer` with relation aware helpers such as
+ * `withCount(relationship: T extends LucidRow ? ExtractModelRelations<T> : string)`,
+ * and pinning the instance to `BaseTransformer<any>` collapses that parameter
+ * to `string`, which no concrete model transformer is assignable to.
  */
-export type TransformerClass = Pick<typeof BaseTransformer, 'transform' | 'paginate'> & {
-  new (resource: any, ...rest: any[]): BaseTransformer<any>
+export type TransformerClass<T = any> = Pick<typeof BaseTransformer, 'transform' | 'paginate'> & {
+  new (resource: T, ...rest: any[]): BaseTransformer<T>
 }
 
 /**
@@ -175,15 +181,15 @@ export class BaseService {
    * depend on injected services resolve against the app bindings, instead of
    * the throwaway container the serializer would otherwise create.
    */
-  async setTransform(transformer: TransformerClass): Promise<this> {
+  async setTransform<T>(transformer: TransformerClass<T>): Promise<this> {
     const resolver = app.container.createResolver()
 
     return this.#applyResource({
       item: (row) =>
         row === null || row === undefined
           ? null
-          : serializer.serialize(transformer.transform(row), resolver),
-      collection: (rows) => serializer.serialize(transformer.transform(rows), resolver),
+          : serializer.serialize(transformer.transform(row as T), resolver),
+      collection: (rows) => serializer.serialize(transformer.transform(rows as T[]), resolver),
     })
   }
 
