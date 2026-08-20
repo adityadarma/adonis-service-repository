@@ -13,9 +13,9 @@ jobs:
           - 24.x
           - 25.x
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v5
         with:
           node-version: ${{ matrix.node-version }}
       - name: Install
@@ -26,3 +26,7 @@ jobs:
         run: npm run typecheck
       - name: Run tests
         run: npm test
+      - name: Build package
+        run: npm run build
+      - name: Verify package contents
+        run: npm pack --dry-run
